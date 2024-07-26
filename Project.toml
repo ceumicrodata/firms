@@ -1,3 +1,4 @@
 [deps]
+Arrow = "69666777-d1a9-59fb-9406-91d4454c9d45"
 Kezdi = "48308a23-c29e-446c-b4c0-d9446a767439"
 TidierPlots = "337ecbd1-5042-4e2a-ae6f-ca776f97570a"

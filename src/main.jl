@@ -22,7 +22,7 @@ function ts_plot(df::AbstractDataFrame, y::Symbol)
     axis = (width = 1000, height = 600)
     plot = data(df) * mapping(:year, y, color = :category) * visual(Lines)
     fig = draw(plot; axis = axis)
-    save("output/$(y).png", fig, px_per_unit = 1)
+    save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
 end
 
 ts_plot(bysize, :gdp_per_worker)

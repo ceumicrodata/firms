@@ -10,13 +10,20 @@ bysize = @with agg begin
     @replace category = "foreign" @if ownership == "foreign"
     @replace category = "small" @if size_category == "micro"
     @drop @if ownership == "state"
-    @collapse gdp = sum(gdp) emp = sum(emp), by(category, year)
+    @collapse gdp = sum(gdp) emp = sum(emp) sales = sum(sales) Export = sum(Export), by(category, year)
     @generate gdp_per_worker = gdp / emp 
+    @generate export_share = Export / sales
     @sort category year
 end
 
 set_aog_theme!()
-axis = (width = 1000, height = 600)
-plot = data(bysize) * mapping(:year, :gdp_per_worker, color = :category) * visual(Lines)
-fig = draw(plot; axis = axis)
-save("output/gdp_per_worker.png", fig, px_per_unit = 1)
+
+function ts_plot(df::AbstractDataFrame, y::Symbol)
+    axis = (width = 1000, height = 600)
+    plot = data(df) * mapping(:year, y, color = :category) * visual(Lines)
+    fig = draw(plot; axis = axis)
+    save("output/$(y).png", fig, px_per_unit = 1)
+end
+
+ts_plot(bysize, :gdp_per_worker)
+ts_plot(bysize, :export_share)

@@ -26,7 +26,7 @@ function aggregate(df::AbstractDataFrame)
         @replace sales = sales / ppi21
         @replace gdp = gdp / ppi21
         @replace Export = Export / ppi21
-        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp), by(size_category, year) 
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp), by(size_category, ownership, year) 
     end
 end
 
@@ -43,13 +43,34 @@ macro get(x)
     end
 end
 
-function create_balance()
+function create_balance_data()
     println("Loading balance data")
-    balance_output |> Kezdi.readstat |> DataFrame
+    balance_input |> Kezdi.readstat |> DataFrame
+end
+
+function create_balance_clean()
+    println("Cleaning balance data")
+    df = @get balance_data
+    # this is necessary because `export` is a reserved word in Julia
+    df.Export = df.export
+    
+    @with df begin
+        @generate frame_id_numeric = parse_id(frame_id, originalid)
+        @generate id_type = id_type(frame_id, originalid)
+    
+        @keep frame_id_numeric id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear gdp tax ppi21 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
+    
+        @replace emp = 0 @if ismissing(emp)
+        @generate size_category = size_category(emp)
+    
+        @generate ownership = "foreign" @if fo3 == 1
+        @replace ownership = "state" @if so3_with_mo3 == 1
+        @replace ownership = "domestic" @if ismissing(ownership)
+    end
 end
 
 function create_agg()
     println("Aggregating balance data")
-    _balance = @get balance
-    aggregate(_balance)
+    balance = @get balance_clean
+    aggregate(balance)
 end

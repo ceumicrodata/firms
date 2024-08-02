@@ -26,30 +26,29 @@ function aggregate(df::AbstractDataFrame)
         @replace sales = sales / ppi21
         @replace gdp = gdp / ppi21
         @replace Export = Export / ppi21
-        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp), by(size_category, ownership, year) 
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)), by(size_category, ownership, year) 
     end
 end
 
 mvreplace(x, y) = ismissing(x) ? y : x
 
 # only load data if not yet loaded
-macro get(x)
+macro get(x, force=false)
     quote
-        if isdefined($(__module__), $(QuoteNode(x)))
+        if !$(esc(force)) && isdefined($(__module__), $(QuoteNode(x)))
             $(esc(x))
         else
+            println("Creating $($x)...")
             $(esc(x)) = $(esc(Symbol("create_", x)))()
         end
     end
 end
 
 function create_balance_data()
-    println("Loading balance data")
     balance_input |> Kezdi.readstat |> DataFrame
 end
 
 function create_balance_clean()
-    println("Cleaning balance data")
     df = @get balance_data
     # this is necessary because `export` is a reserved word in Julia
     df.Export = df.export
@@ -70,7 +69,6 @@ function create_balance_clean()
 end
 
 function create_agg()
-    println("Aggregating balance data")
     balance = @get balance_clean
     aggregate(balance)
 end

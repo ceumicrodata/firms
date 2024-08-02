@@ -22,7 +22,34 @@ function id_type(frame_id::AbstractString, originalid::Number)
 end
 
 function aggregate(df::AbstractDataFrame)
-    @with df @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp), by(size_category, year)
+    @with df begin
+        @replace sales = sales / ppi21
+        @replace gdp = gdp / ppi21
+        @replace Export = Export / ppi21
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp), by(size_category, year) 
+    end
 end
 
 mvreplace(x, y) = ismissing(x) ? y : x
+
+# only load data if not yet loaded
+macro get(x)
+    quote
+        if isdefined($(__module__), $(QuoteNode(x)))
+            $(esc(x))
+        else
+            $(esc(x)) = $(esc(Symbol("create_", x)))()
+        end
+    end
+end
+
+function create_balance()
+    println("Loading balance data")
+    balance_output |> Kezdi.readstat |> DataFrame
+end
+
+function create_agg()
+    println("Aggregating balance data")
+    _balance = @get balance
+    aggregate(_balance)
+end

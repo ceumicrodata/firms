@@ -1,3 +1,7 @@
 [deps]
+AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Kezdi = "48308a23-c29e-446c-b4c0-d9446a767439"
-TidierPlots = "337ecbd1-5042-4e2a-ae6f-ca776f97570a"
+
+[compat]
+julia = "1.10.4"

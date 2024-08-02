@@ -1,8 +1,9 @@
 using Kezdi
 
 include("../functions.jl")
+include("../consts.jl")
 
-df = @use "input/merleg-LTS-2022/balance/balance_sheet_80_21.dta", clear
+df = @use balance_input, clear
 # this is necessary because `export` is a reserved word in Julia
 df.Export = df.export
 
@@ -20,4 +21,4 @@ end
     @tabulate year size_category
 end
 
-Kezdi.writestat("temp/balance.dta", filtered)
+Kezdi.writestat(balance_output, filtered)

@@ -38,7 +38,7 @@ macro get(x, force=false)
         if !$(esc(force)) && isdefined($(__module__), $(QuoteNode(x)))
             $(esc(x))
         else
-            println("Creating $($x)...")
+            println("Creating $($(QuoteNode(x)))...")
             $(esc(x)) = $(esc(Symbol("create_", x)))()
         end
     end

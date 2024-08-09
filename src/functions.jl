@@ -35,7 +35,7 @@ mvreplace(x, y) = ismissing(x) ? y : x
 # only load data if not yet loaded
 macro get(x, force=false)
     quote
-        if !$(esc(force)) && isdefined($(__module__), $(QuoteNode(x)))
+        if !$(esc(force)) && isdefined($(__module__), $(QuoteNode(x))) && !isnothing($(esc(x)))
             $(esc(x))
         else
             println("Creating $($(QuoteNode(x)))...")
@@ -56,6 +56,7 @@ function create_balance_clean()
     @with balance_data begin
         @generate frame_id_numeric = parse_id(frame_id, originalid)
         @generate id_type = id_type(frame_id, originalid)
+        @drop @if teaor08_1d == "K"
 
         @keep frame_id_numeric id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear gdp tax ppi21 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     

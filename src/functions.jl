@@ -39,7 +39,7 @@ macro get(x, force=false)
             $(esc(x))
         else
             println("Creating $($(QuoteNode(x)))...")
-            $(esc(x)) = $(esc(Symbol("create_", x)))()
+            global $(esc(x)) = $(esc(Symbol("create_", x)))()
         end
     end
 end
@@ -49,14 +49,14 @@ function create_balance_data()
 end
 
 function create_balance_clean()
-    df = @get balance_data
+    @get balance_data
     # this is necessary because `export` is a reserved word in Julia
-    df.Export = df.export
+    balance_data.Export = balance_data.export
     
-    @with df begin
+    @with balance_data begin
         @generate frame_id_numeric = parse_id(frame_id, originalid)
         @generate id_type = id_type(frame_id, originalid)
-    
+
         @keep frame_id_numeric id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear gdp tax ppi21 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     
         @replace emp = 0 @if ismissing(emp)
@@ -69,6 +69,6 @@ function create_balance_clean()
 end
 
 function create_agg()
-    balance = @get balance_clean
-    aggregate(balance)
+    @get balance_clean
+    aggregate(balance_clean)
 end

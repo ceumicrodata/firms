@@ -26,34 +26,22 @@ function aggregate(df::AbstractDataFrame)
         @replace sales = sales / ppi21
         @replace gdp = gdp / ppi21
         @replace Export = Export / ppi21
-        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)), by(size_category, ownership, year) 
+        @replace Export = 0 @if ismissing(Export)
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_exporter = sum(Export > 0), by(size_category, ownership, year) 
     end
 end
 
 mvreplace(x, y) = ismissing(x) ? y : x
 
-# only load data if not yet loaded
-macro get(x, force=false)
-    quote
-        if !$(esc(force)) && isdefined($(__module__), $(QuoteNode(x))) && !isnothing($(esc(x)))
-            $(esc(x))
-        else
-            println("Creating $($(QuoteNode(x)))...")
-            global $(esc(x)) = $(esc(Symbol("create_", x)))()
-        end
-    end
-end
-
 function create_balance_data()
     balance_input |> Kezdi.readstat |> DataFrame
 end
 
-function create_balance_clean()
-    @get balance_data
+function clean_balance(df::AbstractDataFrame)
     # this is necessary because `export` is a reserved word in Julia
-    balance_data.Export = balance_data.export
+    df.Export = df.export
     
-    @with balance_data begin
+    @with df begin
         @generate frame_id_numeric = parse_id(frame_id, originalid)
         @generate id_type = id_type(frame_id, originalid)
         @drop @if teaor08_1d == "K"
@@ -67,9 +55,4 @@ function create_balance_clean()
         @replace ownership = "state" @if so3_with_mo3 == 1
         @replace ownership = "domestic" @if ismissing(ownership)
     end
-end
-
-function create_agg()
-    @get balance_clean
-    aggregate(balance_clean)
 end

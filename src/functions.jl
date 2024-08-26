@@ -17,18 +17,17 @@ function age_bin(age::Number)
     return 6
 end
 
-function locf(x::Array{Float64})
-    dx = zeros(x)
-    for i in 2:length(x)-1
-        if x[i+1] > 0 && x[i] == 0.0
-            dx[i+1] = x[i+1]
+function locf(x::Vector{Float64})
+    dx = similar(x)
+    last_nonzero = 0.0
+    for i in eachindex(x)
+        if !iszero(x[i])
+            last_nonzero = x[i]
         end
-            if dx[i] == 0 
-                dx[i] = dx[i-1]
-            end
-        end
-        return dx
+        dx[i] = last_nonzero
     end
+    return dx
+end
     
 function parse_id(frame_id::AbstractString, originalid::Number)
     left(frame_id, 1) == "f" && return parse(Int64, right(frame_id, -2))

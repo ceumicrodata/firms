@@ -46,7 +46,7 @@ function clean_balance(df::AbstractDataFrame)
         @generate id_type = id_type(frame_id, originalid)
         @drop @if teaor08_1d == "K"
 
-        @keep frame_id_numeric id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear gdp tax ppi21 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
+        @keep frame_id_numeric originalid id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear gdp tax ppi21 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     
         @replace emp = 0 @if ismissing(emp)
         @generate size_category = size_category(emp)
@@ -55,4 +55,8 @@ function clean_balance(df::AbstractDataFrame)
         @replace ownership = "state" @if so3_with_mo3 == 1
         @replace ownership = "domestic" @if ismissing(ownership)
     end
+end
+
+function isstrategic(frame_id::Number)
+    frame_id in strategic_partnership
 end

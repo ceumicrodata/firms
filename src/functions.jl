@@ -48,26 +48,28 @@ function aggregate(df::AbstractDataFrame)
         @replace gdp = gdp / ppi21
         @replace Export = Export / ppi21
         @replace Export = 0 @if ismissing(Export)
-        @egen max_emp_5 = max(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
-        @generate growth = emp / max_emp_5
-        @egen first_balance = min(year), by(frame_id_numeric)
-        @egen firmage2 = year - first_balance
-        @replace firmage2 = firmage2 + 1
-        @egen firm_start = firmage2 @if firmage==1
-        @egen lemp = log(emp)
-        @egen flemp = log(emp) @if first_balance == year
-        #na_locf = locf(flemp)
-        @egen hlemp = lemp - flemp
-        @collapse mean_growth = mean(growth) firm_start = sum(firm_start) sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = rowcount(distinct(Export)) max_emp_5 = sum(max_emp_5) hlemp = mean(hlemp) n_firms_age = rowcount(distinct(firmage2)), by(size_category, ownership, year) 
+        @egen first_balance = minimum(year), by(frame_id_numeric)
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(size_category, ownership, year) 
     end
 end
 
-function aggregate_survival(df::AbstractDataFrame)
+function panel(df::AbstractDataFrame)
     @with df begin
-        @egen first_balance = min(year), by(frame_id_numeric)
-        @egen firmage2 = year - first_balance
-        @replace firmage2 = firmage2 + 1
-        @collapse n_firms = rowcount(distinct(frame_id_numeric)), by(firmage2, size_category, ownership, year)
+        @generate category = size_category
+        @replace category = "foreign" @if ownership == "foreign"
+        @replace category = "small" @if size_category == "micro"
+        @drop @if ownership == "state"
+        @replace sales = sales / ppi21
+        @replace gdp = gdp / ppi21
+        @replace Export = Export / ppi21
+        @replace Export = 0 @if ismissing(Export)
+        @egen max_emp_5 = maximum(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
+        @generate growth = emp / max_emp_5
+        @egen first_balance = minimum(year), by(frame_id_numeric)
+        @generate age_in_balance = year - first_balance + 1
+        @collapse mean_growth = mean(growth) n_firms = rowcount(distinct(frame_id_numeric)), by(category, age_in_balance) 
+        @egen max_n = maximum(cond(age_in_balance == 1, n_firms, 0)), by(category)
+        @generate survival = 100 * n_firms / max_n
     end
 end
 

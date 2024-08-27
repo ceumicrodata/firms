@@ -10,6 +10,10 @@ include("functions.jl")
 @target agg = aggregate(balance)
 @target survival = panel(balance)
 
+@target ceo_data = create_ceo_data()
+@target ceo = clean_ceo(ceo_data)
+@target agg_ceo = aggregate_ceo(ceo)
+
 function main()
     @get agg
     all = @with agg begin

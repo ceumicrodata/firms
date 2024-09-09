@@ -106,11 +106,3 @@ end
 function create_ceo_data()
     ceo_input |> Kezdi.readstat |> DataFrame
 end
-
-function merge_ceo(df::AbstractDataFrame)
-    merge_ceo = outerjoin(balance, ceo_data, on = [:frame_id_numeric, :year])
-
-    @with df begin
-        @drop @if ismissing(birth_year)
-    end
-end

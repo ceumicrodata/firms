@@ -62,22 +62,22 @@ function main()
         @drop @if ceo_age2013 <10 || ceo_age2013>90
         @collapse n_ceo_age2013 = rowcount(ceo_age2013), by(ceo_age2013, sex)
     end
-    byagepyr21 = @with joined begin
+    byagepyr22 = @with joined begin
         @drop @if ismissing(birth_year)
         @generate sex = male
         @replace sex = "Male" @if sex==1
         @replace sex = "Female" @if sex==0
-        @egen ceo_age2021 = 2021-birth_year
-        @keep @if year==2021
-        @drop @if ceo_age2021 <10 || ceo_age2021>90
-        @collapse n_ceo_age2021 = rowcount(ceo_age2021), by(ceo_age2021, sex)
+        @egen ceo_age2022 = 2022-birth_year
+        @keep @if year==2022
+        @drop @if ceo_age2022 <10 || ceo_age2022>90
+        @collapse n_ceo_age2022 = rowcount(ceo_age2022), by(ceo_age2022, sex)
     end
     byageretire = @with joined begin
         @drop @if ismissing(birth_year)
         @generate category = size_category
         @replace category = "foreign" @if ownership == "foreign"
         @replace category = "small" @if size_category == "micro"
-        @egen ceo_age = 2021-birth_year
+        @egen ceo_age = 2022-birth_year
         @egen ceo_age60 = ceo_age>=60
         @collapse num_total = rowcount(ceo_age) num_age_60 = sum(ceo_age60), by(category, year)
         @drop @if ismissing(category)
@@ -112,7 +112,7 @@ function main()
     fig8 = ts_plot(byage, :mean_growth, :age_in_balance)
     fig9 = ts_plot(byceo, :mean_birth_year)
     fig10 = ts_plot2(byagepyr13, :n_ceo_age2013)
-    fig102 = ts_plot2(byagepyr21, :n_ceo_age2021)
+    fig102 = ts_plot2(byagepyr22, :n_ceo_age2022)
     fig11 = ts_plot(byageretire, :age_60_ratio)
 end
 

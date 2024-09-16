@@ -2,6 +2,7 @@
 AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Kezdi = "48308a23-c29e-446c-b4c0-d9446a767439"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 Targets = "911cb31e-70cd-4e9d-a353-3054e2e6a3a8"
 
 [compat]

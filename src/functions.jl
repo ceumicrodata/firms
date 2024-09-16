@@ -42,6 +42,23 @@ function id_type(frame_id::AbstractString, originalid::Number)
     return "negative"
 end
 
+function categorize_all(df::AbstractDataFrame)
+    @with df begin
+        @generate category = size_category
+        @replace category = "foreign" @if ownership == "foreign"
+        @replace category = "state" @if ownership == "state"
+    end
+end
+
+function categorize_size(df::AbstractDataFrame)
+    @with df begin
+        @generate category = size_category
+        @replace category = "foreign" @if ownership == "foreign"
+        @replace category = "small" @if size_category == "micro"
+        @drop @if ownership == "state"
+    end
+end
+
 function aggregate(df::AbstractDataFrame)
     @with df begin
         @replace sales = sales / ppi21
@@ -49,16 +66,16 @@ function aggregate(df::AbstractDataFrame)
         @replace Export = Export / ppi21
         @replace Export = 0 @if ismissing(Export)
         @egen first_balance = minimum(year), by(frame_id_numeric)
-        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(size_category, ownership, year) 
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(category, year) 
+        @generate gdp_per_worker = gdp / emp 
+        @generate sales_per_worker = sales / emp 
+        @generate export_share = Export / sales
+        @sort category year
     end
 end
 
 function panel(df::AbstractDataFrame)
-    @with df begin
-        @generate category = size_category
-        @replace category = "foreign" @if ownership == "foreign"
-        @replace category = "small" @if size_category == "micro"
-        @drop @if ownership == "state"
+    @with categorize_size(df) begin
         @replace sales = sales / ppi21
         @replace gdp = gdp / ppi21
         @replace Export = Export / ppi21
@@ -70,6 +87,7 @@ function panel(df::AbstractDataFrame)
         @collapse mean_growth = mean(growth) n_firms = rowcount(distinct(frame_id_numeric)), by(category, age_in_balance) 
         @egen max_n = maximum(cond(age_in_balance == 1, n_firms, 0)), by(category)
         @generate survival = 100 * n_firms / max_n
+        @sort category age_in_balance
     end
 end
 
@@ -105,4 +123,30 @@ end
 
 function create_ceo_data()
     ceo_input |> Kezdi.readstat |> DataFrame
+end
+
+function ceo_demographics(df::AbstractDataFrame)
+    @with df begin
+        @drop @if year < 2010
+        @drop @if ismissing(birth_year)
+        @generate gender = "Male" @if male == 1
+        @replace gender = "Female" @if male == 0
+        @generate age = year - birth_year
+        @generate older60 = age > 60
+        @drop @if age < 18 || age > 90
+    end
+end
+
+function ts_plot(df::AbstractDataFrame, y::Symbol, t::Symbol = :year)
+    axis = (width = 1000, height = 600)
+    plot = data(df) * mapping(t, y, color = :category) * visual(Lines)
+    fig = draw(plot; axis = axis)
+    save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
+end
+
+function histogram(df::AbstractDataFrame, y::Symbol, weight::Symbol = :n_ceos)
+    axis = (width = 1000, height = 600)
+    plot = data(df) * mapping(y, weight, color = :gender) * visual(BarPlot)
+    fig = draw(plot; axis = axis)
+    save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
 end

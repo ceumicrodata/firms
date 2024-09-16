@@ -146,7 +146,9 @@ end
 
 function histogram(df::AbstractDataFrame, y::Symbol, weight::Symbol = :n_ceos)
     axis = (width = 1000, height = 600)
-    plot = data(df) * mapping(y, weight, color = :gender) * visual(BarPlot)
+    plot = data(df) * mapping(y, weight, color = :gender, dodge = :gender) * visual(
+        BarPlot, 
+        alpha = 0.1)
     fig = draw(plot; axis = axis)
     save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
 end

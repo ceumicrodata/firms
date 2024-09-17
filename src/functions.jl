@@ -76,17 +76,17 @@ end
 
 function panel(df::AbstractDataFrame)
     @with categorize_size(df) begin
-        @replace sales = sales / ppi21
-        @replace gdp = gdp / ppi21
-        @replace Export = Export / ppi21
-        @replace Export = 0 @if ismissing(Export)
-        @egen max_emp_5 = maximum(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
-        @generate growth = emp / max_emp_5
         @egen first_balance = minimum(year), by(frame_id_numeric)
         @generate age_in_balance = year - first_balance + 1
-        @collapse mean_growth = mean(growth) n_firms = rowcount(distinct(frame_id_numeric)), by(category, age_in_balance) 
+        @egen emp_at_5 = maximum(cond(age_in_balance == 5, emp, 0)), by(frame_id_numeric)
+        @drop @if emp_at_5 < 1
+        @generate ln_growth = log(emp / emp_at_5)
+        @collapse mean_growth = mean(ln_growth) n_firms = rowcount(emp) emp = sum(emp), by(category, age_in_balance) 
+        @replace emp = emp / n_firms
         @egen max_n = maximum(cond(age_in_balance == 1, n_firms, 0)), by(category)
+        @egen emp_at_5 = maximum(cond(age_in_balance == 5, emp, 0)), by(category)
         @generate survival = 100 * n_firms / max_n
+        @generate growth = emp / emp_at_5
         @sort category age_in_balance
     end
 end

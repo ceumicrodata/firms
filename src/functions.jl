@@ -53,7 +53,7 @@ end
 function categorize_size(df::AbstractDataFrame)
     @with df begin
         @replace size_category = "small" @if size_category == "micro"
-            @generate category = size_category * " domestic"
+        @generate category = size_category * " domestic"
         @replace category = "foreign" @if ownership == "foreign"
         @drop @if ownership == "state"
     end
@@ -75,11 +75,15 @@ function aggregate(df::AbstractDataFrame)
 end
 
 function panel(df::AbstractDataFrame)
-    @with categorize_size(df) begin
+    @with df begin
         @egen first_balance = minimum(year), by(frame_id_numeric)
         @generate age_in_balance = year - first_balance + 1
         @egen emp_at_5 = maximum(cond(age_in_balance == 5, emp, 0)), by(frame_id_numeric)
         @drop @if emp_at_5 < 1
+        @generate category = size_category(emp_at_5) * " domestic"
+        @replace category = "small domestic" @if category == "micro domestic"
+        @replace category = "foreign" @if ownership == "foreign"
+        @drop @if ownership == "state"
         @generate ln_growth = log(emp / emp_at_5)
         @collapse mean_growth = mean(ln_growth) n_firms = rowcount(emp) emp = sum(emp), by(category, age_in_balance) 
         @replace emp = emp / n_firms

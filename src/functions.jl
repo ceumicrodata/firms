@@ -44,7 +44,7 @@ end
 
 function categorize_all(df::AbstractDataFrame)
     @with df begin
-        @generate category = size_category
+        @generate category = size_category * " domestic"
         @replace category = "foreign" @if ownership == "foreign"
         @replace category = "state" @if ownership == "state"
     end
@@ -52,9 +52,9 @@ end
 
 function categorize_size(df::AbstractDataFrame)
     @with df begin
-        @generate category = size_category
+        @replace size_category = "small" @if size_category == "micro"
+            @generate category = size_category * " domestic"
         @replace category = "foreign" @if ownership == "foreign"
-        @replace category = "small" @if size_category == "micro"
         @drop @if ownership == "state"
     end
 end

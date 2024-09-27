@@ -9,11 +9,11 @@ function size_category(size::Number)
 end
 
 function age_bin(age::Number)
-    age < 6 && return 1
-    age < 11 && return 2
-    age < 16 && return 3
-    age < 21 && return 4
-    age < 26 && return 5
+    age < 7 && return 1
+    age < 12 && return 2
+    age < 17 && return 3
+    age < 22 && return 4
+    age < 27 && return 5
     return 6
 end
 
@@ -61,9 +61,9 @@ end
 
 function aggregate(df::AbstractDataFrame)
     @with df begin
-        @replace sales = sales / ppi21
-        @replace gdp = gdp / ppi21
-        @replace Export = Export / ppi21
+        @replace sales = sales / ppi22
+        @replace gdp = gdp / ppi22
+        @replace Export = Export / ppi22
         @replace Export = 0 @if ismissing(Export)
         @egen first_balance = minimum(year), by(frame_id_numeric)
         @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(category, year) 
@@ -76,9 +76,9 @@ end
 
 function panel(df::AbstractDataFrame)
     @with categorize_size(df) begin
-        @replace sales = sales / ppi21
-        @replace gdp = gdp / ppi21
-        @replace Export = Export / ppi21
+        @replace sales = sales / ppi22
+        @replace gdp = gdp / ppi22
+        @replace Export = Export / ppi22
         @replace Export = 0 @if ismissing(Export)
         @egen max_emp_5 = maximum(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
         @generate growth = emp / max_emp_5
@@ -106,7 +106,7 @@ function clean_balance(df::AbstractDataFrame)
         @generate id_type = id_type(frame_id, originalid)
         @drop @if teaor08_1d == "K" || teaor03_1d == "J"
 
-        @keep frame_id_numeric originalid id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear firmage gdp tax ppi21 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
+        @keep frame_id_numeric originalid id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear firmage gdp tax ppi22 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     
         @replace emp = 0 @if ismissing(emp)
         @generate size_category = size_category(emp)
@@ -137,15 +137,31 @@ function ceo_demographics(df::AbstractDataFrame)
     end
 end
 
-function ts_plot(df::AbstractDataFrame, y::Symbol, t::Symbol = :year)
-    axis = (width = 1000, height = 600)
-    plot = data(df) * mapping(t, y, color = :category) * visual(Lines)
+function ts_plot(df::AbstractDataFrame, y::Symbol, t::Symbol = :year, ytickformatvar::String = :"{:.0f}", xticksvar::StepRange = :1980:2:2022) 
+    axis = (width = 1000, height = 600, 
+    ytickformat = ytickformatvar, 
+    xtickwidth = 1, 
+    #xminorticks = IntervalsBetween(3), 
+    xminorticksvisible = true, 
+    xminorgridvisible = true,
+    xgridvisible = true,
+    xtickformat = "{:.0f}", 
+    xticks = xticksvar)
+    plot = data(df) * mapping(t, y, color = :category) * visual(Lines,
+    linewidth = 4)
     fig = draw(plot; axis = axis)
     save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
 end
 
 function histogram(df::AbstractDataFrame, y::Symbol, weight::Symbol = :n_ceos)
-    axis = (width = 1000, height = 600)
+    axis = (width = 1000, height = 600,
+    ytickformat = "{:.0f}", 
+    xtickwidth = 1, 
+    #xminorticks = IntervalsBetween(3), 
+    #xminorticksvisible = true, 
+    #xminorgridvisible = true,
+    xtickformat = "{:.0f}", 
+    xticks = 0:5:100)
     plot = data(df) * mapping(y, weight, color = :gender, dodge = :gender) * visual(
         BarPlot, 
         alpha = 0.1)

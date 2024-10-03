@@ -53,7 +53,7 @@ end
 function categorize_size(df::AbstractDataFrame)
     @with df begin
         @replace size_category = "small" @if size_category == "micro"
-            @generate category = size_category * " domestic"
+        @generate category = size_category * " domestic"
         @replace category = "foreign" @if ownership == "foreign"
         @drop @if ownership == "state"
     end
@@ -105,6 +105,7 @@ function clean_balance(df::AbstractDataFrame)
         @generate frame_id_numeric = parse_id(frame_id, originalid)
         @generate id_type = id_type(frame_id, originalid)
         @drop @if teaor08_1d == "K" || teaor03_1d == "J"
+        @replace fo3=1 @if frame_id_numeric==13113267
 
         @keep frame_id_numeric originalid id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear firmage gdp tax ppi22 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     

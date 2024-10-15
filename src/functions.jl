@@ -154,6 +154,32 @@ function ts_plot(df::AbstractDataFrame, y::Symbol, t::Symbol = :year, ytickforma
     save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
 end
 
+function ts_plot_cat(df::AbstractDataFrame, y::Symbol, t::Symbol = :year, ytickformatvar::String = :"{:.0f}", xticksvar::StepRange = :1980:2:2022) 
+    axis = (width = 1000, height = 600, 
+    ytickformat = ytickformatvar, 
+    xtickwidth = 1, 
+    xminorticksvisible = true, 
+    xminorgridvisible = true,
+    xgridvisible = true,
+    xtickformat = "{:.0f}",
+    xticks = xticksvar)
+    axis2 = (width = 1000, height = 600,
+    ytickformat = ytickformatvar, 
+    xtickwidth = 1, 
+    xminorticksvisible = true, 
+    xminorgridvisible = true,
+    xgridvisible = true,
+    xtickformat = "{:.0f}",
+    xticks = xticksvar)
+    layer_1 = data(df) * mapping(t, y, color = :category, layout = :category_1) * visual(Lines, linewidth = 4)
+    paginated_1 = paginate(layer_1)
+    figuregrids = draw(paginated_1; axis = axis)
+    layer_2 = data(df) * mapping(t, y, color = :category, layout = :category_2) * visual(Lines, linewidth = 4)
+    paginated_2 = paginate(layer_2)
+    fig = draw(paginated_2, 1, axis = axis2) 
+    save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
+end
+
 function histogram(df::AbstractDataFrame, y::Symbol, weight::Symbol = :n_ceos)
     axis = (width = 1000, height = 600,
     ytickformat = "{:.0f}", 

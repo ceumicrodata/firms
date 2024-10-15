@@ -41,10 +41,18 @@ function main()
         @collapse n_ceos = rowcount(age), by(age, gender)
         @rename age age2013
     end
-    byagepyr21 = @with ceos begin
-        @keep @if year == 2021
+    byagepyr22 = @with ceos begin
+        @keep @if year == 2022
         @collapse n_ceos = rowcount(age), by(age, gender)
-        @rename age age2021
+        @rename age age2022
+    end
+    bycat = @with all begin 
+        @generate category_1 = category
+        @replace category_1 = "" @if (category_1 == "micro domestic")
+        @generate category_2 = ""
+        @replace category_2 = category @if (category == "micro domestic")
+        @collapse n_firms_cat = sum(n_firms), by(category, category_1, category_2, year)
+        @sort category category_1 category_2 year
     end
 
     set_aog_theme!()
@@ -59,8 +67,9 @@ function main()
     fig8 = ts_plot(survival, :mean_growth, :age_in_balance,"{:.0f}", 0:5:40)
     fig9 = ts_plot(byceo, :mean_age)
     fig10 = histogram(byagepyr13, :age2013, :n_ceos)
-    fig102 = histogram(byagepyr21, :age2021, :n_ceos)
+    fig102 = histogram(byagepyr22, :age2022, :n_ceos)
     fig11 = ts_plot(byceo, :older60, :year, :"{:.1f}")
+    fig12 = ts_plot_cat(bycat, :n_firms_cat)
 end
 
 main()

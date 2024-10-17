@@ -59,6 +59,14 @@ function categorize_size(df::AbstractDataFrame)
     end
 end
 
+function categorize_size_only(df::AbstractDataFrame)
+    @with df begin
+        @rename size_category category
+        # Lakmusz defines exporter as 10% of sales
+        @replace Export = 0 @if Export < 0.1 * sales
+    end
+end
+
 function aggregate(df::AbstractDataFrame)
     @with df begin
         @replace sales = sales / ppi22

@@ -16,9 +16,11 @@ include("functions.jl")
 # aggregating by category
 @target all_categories = categorize_all(balance)
 @target size_categories = categorize_size(balance)
+@target lakmusz_temp = categorize_size_only(balance)
 
 @target all = aggregate(all_categories)
 @target bysize = aggregate(size_categories)
+@target lakmusz = aggregate(lakmusz_temp)
 
 @target survival = panel(balance)
 
@@ -30,6 +32,7 @@ function main()
     @get ceos
     @get balance
     @get size_categories
+    @get lakmusz
     joined = innerjoin(size_categories, ceos, on = [:frame_id_numeric, :year])
     byceo = @with joined begin
         @collapse mean_age = mean(age) older60 = mean(older60), by(category, year)
@@ -61,6 +64,8 @@ function main()
     fig10 = histogram(byagepyr13, :age2013, :n_ceos)
     fig102 = histogram(byagepyr23, :age2023, :n_ceos)
     fig11 = ts_plot((@with byceo @keep @if year >= 2013), :older60, :year, :"{:.1f}")
+
+    lakmusz |> CSV.write("output/lakmusz.csv", writeheader = true)
 end
 
 main()

@@ -41,10 +41,10 @@ function main()
         @collapse n_ceos = rowcount(age), by(age, gender)
         @rename age age2013
     end
-    byagepyr21 = @with ceos begin
-        @keep @if year == 2021
+    byagepyr23 = @with ceos begin
+        @keep @if year == 2023
         @collapse n_ceos = rowcount(age), by(age, gender)
-        @rename age age2021
+        @rename age age2023
     end
 
     set_aog_theme!()
@@ -59,7 +59,7 @@ function main()
     fig8 = ts_plot(survival, :mean_growth, :age_in_balance,"{:.0f}", 0:5:40)
     fig9 = ts_plot((@with byceo @keep @if year >= 2013), :mean_age)
     fig10 = histogram(byagepyr13, :age2013, :n_ceos)
-    fig102 = histogram(byagepyr21, :age2021, :n_ceos)
+    fig102 = histogram(byagepyr23, :age2023, :n_ceos)
     fig11 = ts_plot((@with byceo @keep @if year >= 2013), :older60, :year, :"{:.1f}")
 end
 

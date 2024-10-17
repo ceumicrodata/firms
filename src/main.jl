@@ -49,17 +49,21 @@ function main()
         @collapse n_ceos = rowcount(age), by(age, gender)
         @rename age age2023
     end
+    exporters = @with all begin
+        @keep @if year <= 2017
+        @generate exporter_share = n_firms_export / n_firms
+    end
 
     set_aog_theme!()
 
     fig1 = ts_plot(all, :n_firms)
     fig2 = ts_plot(bysize, :sales_per_worker)
     fig3 = ts_plot(bysize, :gdp_per_worker)
-    fig4 = ts_plot((@with bysize @keep @if year <= 2017), :export_share, :year,"{:.1f}")
-    fig5 = ts_plot((@with all  @keep @if year <= 2017), :n_firms_export)
+    fig4 = ts_plot((@with bysize @keep @if year <= 2017), :export_share, :year, "{:.1f}")
+    fig5 = ts_plot(exporters, :exporter_share, :year, "{:.1f}")
     fig6 = ts_plot(all, :n_new_firms)
-    fig7 = ts_plot(survival, :survival, :age_in_balance,"{:.0f}", 0:5:40)
-    fig8 = ts_plot(survival, :mean_growth, :age_in_balance,"{:.0f}", 0:5:40)
+    fig7 = ts_plot(survival, :survival, :age_in_balance, "{:.0f}", 0:5:40)
+    fig8 = ts_plot(survival, :mean_growth, :age_in_balance, "{:.0f}", 0:5:40)
     fig9 = ts_plot((@with byceo @keep @if year >= 2013), :mean_age)
     fig10 = histogram(byagepyr13, :age2013, :n_ceos)
     fig102 = histogram(byagepyr23, :age2023, :n_ceos)

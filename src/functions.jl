@@ -61,6 +61,8 @@ end
 
 function categorize_size_only(df::AbstractDataFrame)
     @with df begin
+        # keep fully domestic private businesses only
+        @drop @if ownership == "state" || ownership == "foreign"
         @rename size_category category
         # Lakmusz defines exporter as 10% of sales
         @replace Export = 0 @if Export < 0.1 * sales

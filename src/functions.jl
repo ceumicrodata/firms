@@ -71,9 +71,9 @@ end
 
 function aggregate(df::AbstractDataFrame)
     @with df begin
-        @replace sales = sales / ppi22
-        @replace gdp = gdp / ppi22
-        @replace Export = Export / ppi22
+        @replace sales = sales
+        @replace gdp = gdp
+        @replace Export = Export
         @replace Export = 0 @if ismissing(Export)
         @egen first_balance = minimum(year), by(frame_id_numeric)
         @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(category, year) 
@@ -86,9 +86,9 @@ end
 
 function panel(df::AbstractDataFrame)
     @with categorize_size(df) begin
-        @replace sales = sales / ppi22
-        @replace gdp = gdp / ppi22
-        @replace Export = Export / ppi22
+        @replace sales = sales
+        @replace gdp = gdp
+        @replace Export = Export
         @replace Export = 0 @if ismissing(Export)
         @egen max_emp_5 = maximum(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
         @generate growth = emp / max_emp_5
@@ -115,7 +115,7 @@ function clean_balance(df::AbstractDataFrame)
         @generate frame_id_numeric = parse_id(frame_id, originalid)
         @generate id_type = id_type(frame_id, originalid)
         @drop @if teaor08_1d == "K" || teaor03_1d == "J"
-        @replace fo3=1 @if frame_id_numeric==13113267
+        @replace fo3 = 1 @if frame_id_numeric == 13113267
 
         @keep frame_id_numeric originalid id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear firmage gdp tax ppi22 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     

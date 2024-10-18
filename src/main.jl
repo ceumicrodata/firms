@@ -25,12 +25,13 @@ function main()
 
     set_aog_theme!()
 
-    fig1 = ts_plot(lakmusz, :n_firms)
-    fig2 = ts_plot(lakmusz, :sales_per_worker)
-    fig3 = ts_plot(lakmusz, :gdp_per_worker)
-    fig4 = ts_plot(exporters, :export_share, :year, "{:.1f}")
-    fig5 = ts_plot(exporters, :exporter_share, :year, "{:.1f}")
-    fig6 = ts_plot(lakmusz, :n_new_firms)
+    ts_plot(lakmusz, :n_firms)
+    ts_plot(lakmusz, :sales_per_worker)
+    ts_plot(lakmusz, :gdp_per_worker)
+    ts_plot(exporters, :export_share, :year, "{:.1f}")
+    ts_plot(exporters, :exporter_share, :year, "{:.1f}")
+    ts_plot(exporters, :n_firms_export, :year, "{:.0f}")
+    ts_plot(lakmusz, :n_new_firms)
 
     lakmusz |> CSV.write("output/lakmusz.csv", writeheader = true)
 end

@@ -7,10 +7,10 @@ function size_category(size::Number)
     return "large"
 end
 
-# use definition at https://single-market-economy.ec.europa.eu/smes/sme-fundamentals/sme-definition_en
 function sme(employment::Number, sales_EUR::Number)
-    (employment > 250 || sales_EUR > 50_000_000) && return "large"
-    (employment > 50 || sales_EUR > 10_000_000) && return "medium"
+    # use Exim definition, solely based on sales and with much lower thresholds
+    (sales_EUR > 50_000_000) && return "large"
+    (sales_EUR > 300_000) && return "medium"
     return "small"
 end
 

@@ -7,6 +7,17 @@ function size_category(size::Number)
     return "large"
 end
 
+# use definition at https://single-market-economy.ec.europa.eu/smes/sme-fundamentals/sme-definition_en
+function sme(employment::Number, sales_EUR::Number)
+    (employment > 250 || sales_EUR > 50_000_000) && return "large"
+    (employment > 50 || sales_EUR > 10_000_000) && return "medium"
+    return "small"
+end
+
+function convert_to_eur(huf::Number, year::Number)
+    huf / exchange_rate[year]
+end
+
 function age_bin(age::Number)
     age < 7 && return 1
     age < 12 && return 2
@@ -61,40 +72,17 @@ end
 function categorize_size_only(df::AbstractDataFrame)
     @with df begin
         @rename size_category category
-        # Lakmusz defines exporter as 10% of sales
-        @replace Export = 0 @if Export < 0.1 * sales
     end
 end
 
 function aggregate(df::AbstractDataFrame)
     @with df begin
-        @replace sales = sales
-        @replace gdp = gdp
-        @replace Export = Export
-        @replace Export = 0 @if ismissing(Export)
         @egen first_balance = minimum(year), by(frame_id_numeric)
-        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(category, year) 
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0.1*sales) n_new_firms = sum(year == first_balance), by(category, year) 
         @generate gdp_per_worker = gdp / emp 
         @generate sales_per_worker = sales / emp 
         @generate export_share = Export / sales
         @sort category year
-    end
-end
-
-function panel(df::AbstractDataFrame)
-    @with categorize_size(df) begin
-        @replace sales = sales
-        @replace gdp = gdp
-        @replace Export = Export
-        @replace Export = 0 @if ismissing(Export)
-        @egen max_emp_5 = maximum(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
-        @generate growth = emp / max_emp_5
-        @egen first_balance = minimum(year), by(frame_id_numeric)
-        @generate age_in_balance = year - first_balance + 1
-        @collapse mean_growth = mean(growth) n_firms = rowcount(distinct(frame_id_numeric)), by(category, age_in_balance) 
-        @egen max_n = maximum(cond(age_in_balance == 1, n_firms, 0)), by(category)
-        @generate survival = 100 * n_firms / max_n
-        @sort category age_in_balance
     end
 end
 
@@ -109,6 +97,7 @@ function clean_balance(df::AbstractDataFrame)
     df.Export = df.export
     
     @with df begin
+        @drop @if year < 2010
         @generate frame_id_numeric = parse_id(frame_id, originalid)
         @generate id_type = id_type(frame_id, originalid)
         @drop @if teaor08_1d == "K" || teaor03_1d == "J"
@@ -117,31 +106,16 @@ function clean_balance(df::AbstractDataFrame)
         @keep frame_id_numeric originalid id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear firmage gdp tax ppi22 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     
         @replace sales = 0 @if ismissing(sales)
-        @generate size_category = size_category(sales)
+        @replace Export = 0 @if ismissing(Export)
+        @replace emp = 0 @if ismissing(emp)
+        @replace sales = convert_to_eur(sales * 1000, year)
+        @replace gdp = convert_to_eur(gdp * 1000, year)
+        @replace Export = convert_to_eur(Export * 1000, year)
+        @generate size_category = sme(emp, sales)
     
         @generate ownership = "foreign" @if fo3 == 1
         @replace ownership = "state" @if so3_with_mo3 == 1
         @replace ownership = "domestic" @if ismissing(ownership)
-    end
-end
-
-function isstrategic(frame_id::Number)
-    frame_id in strategic_partnership
-end
-
-function create_ceo_data()
-    ceo_input |> Kezdi.readstat |> DataFrame
-end
-
-function ceo_demographics(df::AbstractDataFrame)
-    @with df begin
-        @drop @if year < 2010
-        @drop @if ismissing(birth_year)
-        @generate gender = "Male" @if male == 1
-        @replace gender = "Female" @if male == 0
-        @generate age = year - birth_year
-        @generate older60 = age > 60
-        @drop @if age < 18 || age > 90
     end
 end
 

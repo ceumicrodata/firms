@@ -2,9 +2,8 @@ left(text::AbstractString, n::Int) = n > 0 ? text[1:min(n, end)] : text[1:end-mi
 right(text::AbstractString, n::Int) = n > 0 ? text[end-min(n, end)+1:end] : text[min(-n, end)+1:end]
 
 function size_category(size::Number)
-    size < 10 && return "micro"
-    size < 50 && return "small"
-    size < 250 && return "medium"
+    size < 100_000 && return "small"
+    size < 16_000_000 && return "medium"
     return "large"
 end
 
@@ -119,8 +118,8 @@ function clean_balance(df::AbstractDataFrame)
 
         @keep frame_id_numeric originalid id_type year sales emp tanass Export egyebbev aktivalt ranyag wbill persexp kecs ereduzem pretax jetok immat teaor08_2d foundyear firmage gdp tax ppi22 teaor08_1d county final_netgep so3_with_mo3 do3 fo3
     
-        @replace emp = 0 @if ismissing(emp)
-        @generate size_category = size_category(emp)
+        @replace sales = 0 @if ismissing(sales)
+        @generate size_category = size_category(sales)
     
         @generate ownership = "foreign" @if fo3 == 1
         @replace ownership = "state" @if so3_with_mo3 == 1

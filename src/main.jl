@@ -13,13 +13,25 @@ include("functions.jl")
 
 # aggregating by category
 @target lakmusz_temp = categorize_size_only(balance)
+@target exim_temp = categorize_size_only(balance)
 @target lakmusz = aggregate(lakmusz_temp)
-
+@target exim = aggregate(exim_temp)
 
 function main()
+    @get balance
+    @with balance @tabulate year size_category @if exim == "medium"
+
     @get lakmusz
     exporters = @with lakmusz  begin
-        @keep @if year <= 2017
+        @replace n_firms_export = missing @if year > 2017
+        @replace export_share = missing @if year > 2017
+        @generate exporter_share = n_firms_export / n_firms
+    end
+
+    @get exim
+    exporters_exim = @with exim  begin
+        @replace n_firms_export = missing @if year > 2017
+        @replace export_share = missing @if year > 2017
         @generate exporter_share = n_firms_export / n_firms
     end
 
@@ -33,7 +45,8 @@ function main()
     ts_plot(exporters, :n_firms_export, :year, "{:.0f}")
     ts_plot(lakmusz, :n_new_firms)
 
-    lakmusz |> CSV.write("output/lakmusz.csv", writeheader = true)
+    (@with exporters @keep @if category == "medium") |> CSV.write("output/lakmusz.csv", writeheader = true)
+    (@with exporters_exim @keep @if category == "medium") |> CSV.write("output/exim.csv", writeheader = true)
 end
 
 main()

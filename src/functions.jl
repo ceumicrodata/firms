@@ -1,16 +1,16 @@
 left(text::AbstractString, n::Int) = n > 0 ? text[1:min(n, end)] : text[1:end-min(-n, end)]
 right(text::AbstractString, n::Int) = n > 0 ? text[end-min(n, end)+1:end] : text[min(-n, end)+1:end]
 
-function size_category(size::Number)
-    size < 100_000 && return "small"
-    size < 16_000_000 && return "medium"
-    return "large"
-end
-
 # use definition at https://single-market-economy.ec.europa.eu/smes/sme-fundamentals/sme-definition_en
 function sme(employment::Number, sales_EUR::Number)
     (employment > 250 || sales_EUR > 50_000_000) && return "large"
     (employment > 50 || sales_EUR > 10_000_000) && return "medium"
+    return "small"
+end
+
+function exim(sales_EUR::Number)
+    (sales_EUR > 50_000_000) && return "large"
+    (sales_EUR > 300_000) && return "medium"
     return "small"
 end
 
@@ -52,26 +52,15 @@ function id_type(frame_id::AbstractString, originalid::Number)
     return "negative"
 end
 
-function categorize_all(df::AbstractDataFrame)
-    @with df begin
-        @generate category = size_category * " domestic"
-        @replace category = "foreign" @if ownership == "foreign"
-        @replace category = "state" @if ownership == "state"
-    end
-end
-
-function categorize_size(df::AbstractDataFrame)
-    @with df begin
-        @replace size_category = "small" @if size_category == "micro"
-        @generate category = size_category * " domestic"
-        @replace category = "foreign" @if ownership == "foreign"
-        @drop @if ownership == "state"
-    end
-end
-
 function categorize_size_only(df::AbstractDataFrame)
     @with df begin
         @rename size_category category
+    end
+end
+
+function categorize_exim(df::AbstractDataFrame)
+    @with df begin
+        @rename exim category
     end
 end
 
@@ -112,6 +101,7 @@ function clean_balance(df::AbstractDataFrame)
         @replace gdp = convert_to_eur(gdp * 1000, year)
         @replace Export = convert_to_eur(Export * 1000, year)
         @generate size_category = sme(emp, sales)
+        @generate exim = exim(sales)
     
         @generate ownership = "foreign" @if fo3 == 1
         @replace ownership = "state" @if so3_with_mo3 == 1

@@ -13,7 +13,7 @@ include("functions.jl")
 
 # aggregating by category
 @target lakmusz_temp = categorize_size_only(balance)
-@target exim_temp = categorize_size_only(balance)
+@target exim_temp = categorize_exim(balance)
 @target lakmusz = aggregate(lakmusz_temp)
 @target exim = aggregate(exim_temp)
 

@@ -53,15 +53,23 @@ function main()
         @keep @if year <= 2017
         @generate exporter_share = n_firms_export / n_firms
     end
+    bycat = @with all begin 
+        @generate category_1 = category
+        @replace category_1 = "" @if (category_1 == "micro domestic")
+        @generate category_2 = ""
+        @replace category_2 = category @if (category == "micro domestic")
+        @collapse n_firms_cat = sum(n_firms) n_new_firms_cat = sum(n_new_firms), by(year, category, category_1, category_2)
+        @sort year category category_1 category_2 
+    end
 
     set_aog_theme!()
 
-    fig1 = ts_plot(all, :n_firms)
+    fig1 = ts_plot_dy(bycat, :n_firms_cat)
     fig2 = ts_plot(bysize, :sales_per_worker)
     fig3 = ts_plot(bysize, :gdp_per_worker)
     fig4 = ts_plot((@with bysize @keep @if year <= 2017), :export_share, :year, "{:.1f}")
     fig5 = ts_plot(exporters, :exporter_share, :year, "{:.1f}")
-    fig6 = ts_plot(all, :n_new_firms)
+    fig6 = ts_plot_dy(bycat, :n_new_firms_cat)
     fig7 = ts_plot(survival, :survival, :age_in_balance, "{:.0f}", 0:5:40)
     fig8 = ts_plot(survival, :mean_growth, :age_in_balance, "{:.0f}", 0:5:40)
     fig9 = ts_plot((@with byceo @keep @if year >= 2013), :mean_age)

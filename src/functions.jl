@@ -177,3 +177,17 @@ function histogram(df::AbstractDataFrame, y::Symbol, weight::Symbol = :n_ceos)
     fig = draw(plot; axis = axis)
     save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
 end
+
+function ts_plot_dy(df::AbstractDataFrame, y::Symbol, t::Symbol = :year, ytickformatvar::String = :"{:.0f}", xticksvar::StepRange = :1980:2:2022) 
+    axis = (width = 1000, height = 600, 
+    ytickformat = ytickformatvar, 
+    xtickwidth = 1, 
+    xminorticksvisible = true, 
+    xminorgridvisible = true,
+    xgridvisible = true,
+    xtickformat = "{:.0f}",
+    xticks = xticksvar)
+    layer_1 = data(df) * mapping(t, y, color = :category, layout = :category_2) * visual(Lines, linewidth = 4)
+    fig = draw(layer_1; axis = axis, facet = (; linkxaxes = :none, linkyaxes = :none))
+    save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
+end

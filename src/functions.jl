@@ -88,10 +88,14 @@ function panel(df::AbstractDataFrame)
         @replace gdp = gdp / ppi22
         @replace Export = Export / ppi22
         @replace Export = 0 @if ismissing(Export)
-        @egen max_emp_5 = maximum(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
-        @generate growth = emp / max_emp_5
         @egen first_balance = minimum(year), by(frame_id_numeric)
         @generate age_in_balance = year - first_balance + 1
+        @egen max_emp_5 = maximum(cond(age_in_balance <= 5, emp, 0)), by(frame_id_numeric)
+        @generate growth = emp / max_emp_5
+        @generate category_old = category
+        @replace category = size_category(max_emp_5) * " domestic"
+        @replace category = "small domestic" @if category == "micro domestic"
+        @replace category = category_old @if category_old == "foreign"
         @collapse mean_growth = mean(growth) n_firms = rowcount(distinct(frame_id_numeric)), by(category, age_in_balance) 
         @egen max_n = maximum(cond(age_in_balance == 1, n_firms, 0)), by(category)
         @generate survival = 100 * n_firms / max_n

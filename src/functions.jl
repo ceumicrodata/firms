@@ -88,10 +88,15 @@ function panel(df::AbstractDataFrame)
         @replace gdp = gdp / ppi22
         @replace Export = Export / ppi22
         @replace Export = 0 @if ismissing(Export)
-        @egen max_emp_5 = maximum(cond(firmage <= 5, emp, 0)), by(frame_id_numeric)
-        @generate growth = emp / max_emp_5
         @egen first_balance = minimum(year), by(frame_id_numeric)
         @generate age_in_balance = year - first_balance + 1
+        @egen max_emp_5 = maximum(cond(age_in_balance <= 5, emp, 0)), by(frame_id_numeric)
+        @generate growth = emp / max_emp_5
+        @generate category_old = category
+        @replace category = size_category(max_emp_5) * " domestic"
+        @replace category = "small domestic" @if category == "micro domestic"
+        @egen ever_foreign = maximum(fo3), by(frame_id_numeric)
+        @replace category = "foreign" @if ever_foreign == 1
         @collapse mean_growth = mean(growth) n_firms = rowcount(distinct(frame_id_numeric)), by(category, age_in_balance) 
         @egen max_n = maximum(cond(age_in_balance == 1, n_firms, 0)), by(category)
         @generate survival = 100 * n_firms / max_n
@@ -175,5 +180,19 @@ function histogram(df::AbstractDataFrame, y::Symbol, weight::Symbol = :n_ceos)
         BarPlot, 
         alpha = 0.1)
     fig = draw(plot; axis = axis)
+    save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
+end
+
+function ts_plot_dy(df::AbstractDataFrame, y::Symbol, t::Symbol = :year, ytickformatvar::String = :"{:.0f}", xticksvar::StepRange = :1980:2:2022) 
+    axis = (width = 1000, height = 600, 
+    ytickformat = ytickformatvar, 
+    xtickwidth = 1, 
+    xminorticksvisible = true, 
+    xminorgridvisible = true,
+    xgridvisible = true,
+    xtickformat = "{:.0f}",
+    xticks = xticksvar)
+    layer_1 = data(df) * mapping(t, y, color = :category, layout = :category_2) * visual(Lines, linewidth = 4)
+    fig = draw(layer_1; axis = axis, facet = (; linkxaxes = :none, linkyaxes = :none))
     save("$(figure_folder)/$(y).png", fig, px_per_unit = 1)
 end

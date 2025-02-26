@@ -72,13 +72,16 @@ function aggregate(df::AbstractDataFrame)
         @replace sales = sales / ppi22
         @replace gdp = gdp / ppi22
         @replace Export = Export / ppi22
+        @replace tanass = tanass / ppi22
         @replace Export = 0 @if ismissing(Export)
         @egen first_balance = minimum(year), by(frame_id_numeric)
-        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(category, year) 
+        @generate inputs = tanass^(1/3) * emp^(2/3)
+        @collapse sales = sum(sales) emp = sum(emp) Export = sum(Export) gdp = sum(gdp) inputs = sum(inputs) n_firms = rowcount(distinct(frame_id_numeric)) n_firms_export = sum(Export > 0) n_new_firms = sum(year == first_balance), by(category, year) 
         @generate gdp_per_worker = gdp / emp 
         @generate sales_per_worker = sales / emp 
         @generate export_share = Export / sales
         @generate avg_employment = emp / n_firms
+        @generate TFP = gdp / inputs
         @sort category year
     end
 end

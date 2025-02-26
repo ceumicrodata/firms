@@ -61,3 +61,27 @@ preserve
         xtitle("Year")
     graph export "output/fig/fig3c.png", replace
 restore
+
+clear all
+import delimited "output/survival.csv", case(preserve)
+
+preserve
+    rename age_in_balance age
+    replace mean_growth = mean_growth * 100
+    generate cat = 4 if category == "small domestic"
+    replace cat = 3 if category == "medium domestic"
+    replace cat = 2 if category == "large domestic"
+    replace cat = 1 if category == "foreign"
+    label define cat 1 "Foreign" 2 "Large" 3 "Medium" 4 "Small"
+    label values cat cat
+    xtset cat age
+    xtline survival, overlay  ///
+        title("Survival by size", size(medium)) ytitle("Percent of firms surviving") ///
+        xtitle("Age, year") 
+    graph export "output/fig/fig4a.png", replace
+    keep if inrange(age, 5, 30)
+    xtline mean_growth, overlay  ///
+        title("Firm growth by size", size(medium)) ytitle("Employment index (age 5 = 100)") ///
+        xtitle("Age, year")
+    graph export "output/fig/fig4b.png", replace
+restore

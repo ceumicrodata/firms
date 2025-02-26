@@ -80,6 +80,7 @@ function main()
 
     lakmusz |> CSV.write("output/lakmusz.csv", writeheader = true)
     all |> CSV.write("output/all.csv", writeheader=true)
+    survival |> CSV.write("output/survival.csv", writeheader=true)
 end
 
 main()

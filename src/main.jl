@@ -79,6 +79,7 @@ function main()
     fig11 = ts_plot((@with byceo @keep @if year >= 2013), :older60, :year, :"{:.1f}")
 
     lakmusz |> CSV.write("output/lakmusz.csv", writeheader = true)
+    all |> CSV.write("output/all.csv", writeheader=true)
 end
 
 main()

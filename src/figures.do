@@ -34,7 +34,8 @@ restore
 preserve
     replace category = "small domestic" if category == "micro domestic"
     drop if category == "state"
-    collapse (sum) emp n_firms sales gdp Export, by(category year)
+    collapse (sum) emp n_firms sales Export gdp inputs, by(category year)
+    generate TFP = gdp / inputs / 10
     generate sales_per_worker = sales / emp / 1000
     generate gdp_per_worker = gdp / emp / 1000
     generate export_share = Export / sales * 100
@@ -60,6 +61,10 @@ preserve
         title("Export share by owner", size(medium)) ytitle("Export share, %") ///
         xtitle("Year")
     graph export "output/fig/fig3c.png", replace
+    xtline TFP, overlay  ///
+        title("TFP by owner", size(medium)) ytitle("TFP (index)") ///
+        xtitle("Year")
+    graph export "output/fig/fig3d.png", replace
 restore
 
 clear all

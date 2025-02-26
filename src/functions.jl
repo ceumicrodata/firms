@@ -149,6 +149,7 @@ function ceo_demographics(df::AbstractDataFrame)
         @drop @if ismissing(birth_year)
         @generate gender = "Male" @if male == 1
         @replace gender = "Female" @if male == 0
+        @drop @if ismissing(male)
         @generate age = year - birth_year
         @generate older60 = age > 60
         @drop @if age < 18 || age > 90

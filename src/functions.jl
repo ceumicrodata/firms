@@ -78,6 +78,7 @@ function aggregate(df::AbstractDataFrame)
         @generate gdp_per_worker = gdp / emp 
         @generate sales_per_worker = sales / emp 
         @generate export_share = Export / sales
+        @generate avg_employment = emp / n_firms
         @sort category year
     end
 end
@@ -90,10 +91,13 @@ function panel(df::AbstractDataFrame)
         @replace Export = 0 @if ismissing(Export)
         @egen first_balance = minimum(year), by(frame_id_numeric)
         @generate age_in_balance = year - first_balance + 1
+        @egen max_emp = maximum(emp), by(frame_id_numeric)
         @egen max_emp_5 = maximum(cond(age_in_balance <= 5, emp, 0)), by(frame_id_numeric)
-        @generate growth = emp / max_emp_5
+        @egen emp_at_5 = maximum(cond(age_in_balance == 5, emp, 0)), by(frame_id_numeric)
+        @drop @if emp_at_5 == 0
+        @generate growth = emp / emp_at_5
         @generate category_old = category
-        @replace category = size_category(max_emp_5) * " domestic"
+        @replace category = size_category(emp_at_5) * " domestic"
         @replace category = "small domestic" @if category == "micro domestic"
         @egen ever_foreign = maximum(fo3), by(frame_id_numeric)
         @replace category = "foreign" @if ever_foreign == 1

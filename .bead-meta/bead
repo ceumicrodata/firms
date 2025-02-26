@@ -1,8 +1,8 @@
 {
     "inputs": {
         "ceo-panel": {
-            "content_id": "6b2be3381ea673cdb46e1ce7fff99f8b4647ac8d5093b2ff37bfd2969dfae1b43cb558fc813ba80ab494884e2b38e6152d5e7b9d897d6480a95768f6667a3746",
-            "freeze_time": "20241014T223447293736+0200",
+            "content_id": "4a789e2d4066c3b24cdc8233b49fca68f0609ed3ebe36caf66f2ac30e024faa5bedcf8cfc2fff346fd8118ae67f394ff264f93171aafbbd2e9f5459d6530a261",
+            "freeze_time": "20241125T153535400212+0100",
             "kind": "8f68500668824a7b8b9486f034a6aded-e7db5a61-97b7-4d28-8e22-3ed70eade94b"
         },
         "merleg-LTS-2023": {

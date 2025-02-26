@@ -65,6 +65,7 @@ function main()
     set_aog_theme!()
 
     fig1 = ts_plot_dy(bycat, :n_firms_cat)
+    ts_plot(bysize, :avg_employment)
     fig2 = ts_plot(bysize, :sales_per_worker)
     fig3 = ts_plot(bysize, :gdp_per_worker)
     fig4 = ts_plot((@with bysize @keep @if year <= 2017), :export_share, :year, "{:.1f}")

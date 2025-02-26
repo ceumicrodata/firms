@@ -35,9 +35,9 @@ graph hbar (asis) count, over(category, sort(count) descending) ///
   title("Hungarian Enterprises by Size Category (January 2025)") ///
   subtitle("Number of incorporated businesses") ///
   note("Source: KSH") ///
-  blabel(bar, format(%9.0fc) position(outside) color(blue) size(medium)) ///
+  blabel(bar, format(%9.0fc) position(outside) size(medium)) ///
   ylabel(, format(%9.0fc)) ///
-  bar(1, color(blue)) ///
+  bar(1) ///
   yscale(range(0 500000)) ///
   ytitle("Number of enterprises")
 
